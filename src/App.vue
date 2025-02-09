@@ -1,6 +1,5 @@
 <template>
   <div id="app">
-    <input type="file" @change="handleFileUpload" />
     <table v-if="data.length">
       <thead>
       <tr>
@@ -13,6 +12,7 @@
       </tr>
       </tbody>
     </table>
+    <div v-else>Loading data...</div>
   </div>
 </template>
 
@@ -27,14 +27,15 @@ export default {
       data: []
     };
   },
+  mounted() {
+    this.fetchExcelData();
+  },
   methods: {
-    handleFileUpload(event) {
-      const file = event.target.files[0];
-      const reader = new FileReader();
-
-      reader.onload = (e) => {
-        const binaryStr = e.target.result;
-        const workbook = XLSX.read(binaryStr, { type: 'binary' });
+    async fetchExcelData() {
+      try {
+        const response = await fetch('/gymexp.xlsx'); // Шлях до файлу в директорії public
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer);
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
@@ -43,9 +44,9 @@ export default {
           this.headers = jsonData[0];
           this.data = jsonData.slice(1);
         }
-      };
-
-      reader.readAsBinaryString(file);
+      } catch (error) {
+        console.error('Error fetching the Excel file:', error);
+      }
     }
   }
 };
