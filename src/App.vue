@@ -38,11 +38,11 @@ export default {
 
         // Load data from "Лист1"
         const sheet1 = this.workbook.Sheets['Лист1'];
-        this.sheet1Data = XLSX.utils.sheet_to_json(sheet1, { header: 1 });
+        this.sheet1Data = XLSX.utils.sheet_to_json(sheet1, {header: 1});
 
         // Load data from "Лист2"
         const sheet2 = this.workbook.Sheets['Лист2'];
-        const sheet2Json = XLSX.utils.sheet_to_json(sheet2, { header: 1 });
+        const sheet2Json = XLSX.utils.sheet_to_json(sheet2, {header: 1});
         if (sheet2Json.length > 0) {
           this.sheet2Headers = sheet2Json[0];
           this.sheet2Data = sheet2Json.slice(1);
@@ -85,31 +85,3 @@ button {
   cursor: pointer;
 }
 </style>
-
-
-<template>
-  <div>
-    <table>
-      <thead>
-      <tr>
-        <th v-for="(header, index) in headers" :key="index">{{ header }}</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="(row, rowIndex) in data" :key="rowIndex">
-        <td v-for="(cell, cellIndex) in row" :key="cellIndex">{{ cell }}</td>
-      </tr>
-      </tbody>
-    </table>
-  </div>
-</template>
-
-<script>
-export default {
-  name: 'Sheet2Display',
-  props: {
-    headers: Array,
-    data: Array
-  }
-};
-</script>
