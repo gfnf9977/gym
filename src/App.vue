@@ -5,6 +5,7 @@
       <button @click="checkUsername" class="login-button">Login</button>
       <SheetDisplay
           v-if="showSheet"
+          :weight="userWeight"
           :headers="currentSheetHeaders"
           :data="currentSheetData"
       />
@@ -30,6 +31,7 @@ export default {
       currentSheetHeaders: [],
       currentSheetData: [],
       showSheet: false,
+      userWeight: null,
       workbook: null
     };
   },
@@ -67,10 +69,13 @@ export default {
     checkUsername() {
       const usernameIndex = this.sheet1Data[0].indexOf('username');
       const idIndex = this.sheet1Data[0].indexOf('id');
-      if (usernameIndex === -1 || idIndex === -1) return; // If 'username' or 'id' column is not found
+      const weightIndex = this.sheet1Data[0].indexOf('weight');
+
+      if (usernameIndex === -1 || idIndex === -1 || weightIndex === -1) return; // If necessary columns are not found
 
       const usernames = this.sheet1Data.slice(1).map(row => row[usernameIndex]);
       const ids = this.sheet1Data.slice(1).map(row => row[idIndex]);
+      const weights = this.sheet1Data.slice(1).map(row => row[weightIndex]);
 
       const userIndex = usernames.indexOf(this.inputValue);
       if (userIndex !== -1) {
@@ -79,6 +84,7 @@ export default {
         if (this.sheetsData[sheetName]) {
           this.currentSheetHeaders = this.sheetsData[sheetName].headers;
           this.currentSheetData = this.sheetsData[sheetName].data;
+          this.userWeight = weights[userIndex];
           this.showSheet = true;
         }
       } else {
@@ -91,50 +97,60 @@ export default {
 
 <style>
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  font-family: 'Roboto', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
+  color: #333;
   margin-top: 60px;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #f7f7f7;
+  background-color: #f0f2f5;
 }
 
 .container {
   background: white;
   padding: 40px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   text-align: center;
+  width: 100%;
+  max-width: 400px;
 }
 
 .input-field {
-  margin: 20px;
+  margin: 20px 0;
   padding: 15px;
-  width: 240px;
+  width: 100%;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.input-field:focus {
+  border-color: #007bff;
+  outline: none;
 }
 
 .login-button {
-  margin: 20px;
-  padding: 15px 30px;
+  margin: 20px 0;
+  padding: 15px;
   font-size: 16px;
   color: white;
   background-color: #007bff;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, transform 0.3s;
+  width: 100%;
 }
 
 .login-button:hover {
   background-color: #0056b3;
+  transform: scale(1.05);
 }
 
 .no-match {
