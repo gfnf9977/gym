@@ -7,7 +7,7 @@
       </tr>
       </thead>
       <tbody>
-      <tr v-for="(row, rowIndex) in data" :key="rowIndex">
+      <tr v-for="(row, rowIndex) in data" :key="rowIndex" :class="{ 'alt-row': rowIndex % 2 === 1 }">
         <td v-for="(cell, cellIndex) in row" :key="cellIndex">{{ cell }}</td>
       </tr>
       </tbody>
@@ -17,7 +17,7 @@
 
 <script>
 export default {
-  name: 'Sheet2Display',
+  name: 'SheetDisplay',
   props: {
     headers: Array,
     data: Array
@@ -29,14 +29,26 @@ export default {
 table {
   margin: 20px auto;
   border-collapse: collapse;
+  width: 100%;
+  max-width: 800px;
 }
 
 th, td {
   border: 1px solid #ddd;
-  padding: 8px;
+  padding: 12px;
+  text-align: left;
 }
 
 th {
-  background-color: #f2f2f2;
+  background-color: #007bff;
+  color: white;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}
+
+.alt-row {
+  background-color: #f9f9f9;
 }
 </style>
