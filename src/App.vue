@@ -1,5 +1,11 @@
 <template>
   <div id="app">
+    <div v-if="sheetNames.length">
+      <label for="sheetSelect">Select Sheet:</label>
+      <select id="sheetSelect" v-model="selectedSheet" @change="loadSheetData">
+        <option v-for="(sheet, index) in sheetNames" :key="index" :value="sheet">{{ sheet }}</option>
+      </select>
+    </div>
     <table v-if="data.length">
       <thead>
       <tr>
@@ -24,7 +30,10 @@ export default {
   data() {
     return {
       headers: [],
-      data: []
+      data: [],
+      sheetNames: [],
+      selectedSheet: '',
+      workbook: null
     };
   },
   mounted() {
@@ -33,19 +42,29 @@ export default {
   methods: {
     async fetchExcelData() {
       try {
-        const response = await fetch('/gymexp.xlsx'); // Шлях до файлу в директорії public
+        const response = await fetch('/gymexp.xlsx'); // Path to the file in the public directory
         const arrayBuffer = await response.arrayBuffer();
-        const workbook = XLSX.read(arrayBuffer);
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        this.workbook = XLSX.read(arrayBuffer);
+        this.sheetNames = this.workbook.SheetNames;
 
-        if (jsonData.length > 0) {
-          this.headers = jsonData[0];
-          this.data = jsonData.slice(1);
+        if (this.sheetNames.length > 0) {
+          this.selectedSheet = this.sheetNames[0];
+          this.loadSheetData();
         }
       } catch (error) {
         console.error('Error fetching the Excel file:', error);
+      }
+    },
+    loadSheetData() {
+      const worksheet = this.workbook.Sheets[this.selectedSheet];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+      if (jsonData.length > 0) {
+        this.headers = jsonData[0];
+        this.data = jsonData.slice(1);
+      } else {
+        this.headers = [];
+        this.data = [];
       }
     }
   }
@@ -74,5 +93,10 @@ th, td {
 
 th {
   background-color: #f2f2f2;
+}
+
+select {
+  margin: 20px;
+  padding: 10px;
 }
 </style>
