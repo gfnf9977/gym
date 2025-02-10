@@ -1,38 +1,28 @@
 <template>
   <div id="app">
-    <div v-if="sheetNames.length">
-      <label for="sheetSelect">Select Sheet:</label>
-      <select id="sheetSelect" v-model="selectedSheet" @change="loadSheetData">
-        <option v-for="(sheet, index) in sheetNames" :key="index" :value="sheet">{{ sheet }}</option>
-      </select>
-    </div>
-    <table v-if="data.length">
-      <thead>
-      <tr>
-        <th v-for="(header, index) in headers" :key="index">{{ header }}</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="(row, rowIndex) in data" :key="rowIndex">
-        <td v-for="(cell, cellIndex) in row" :key="cellIndex">{{ cell }}</td>
-      </tr>
-      </tbody>
-    </table>
-    <div v-else>Loading data...</div>
+    <input v-model="inputValue" placeholder="Enter username" />
+    <button @click="checkUsername">Login</button>
+    <Sheet2Display v-if="showSheet2" :headers="sheet2Headers" :data="sheet2Data" />
+    <div v-else-if="inputValue">No match found or invalid input.</div>
   </div>
 </template>
 
 <script>
 import * as XLSX from 'xlsx';
+import Sheet2Display from './components/Sheet2Display.vue';
 
 export default {
   name: 'App',
+  components: {
+    Sheet2Display
+  },
   data() {
     return {
-      headers: [],
-      data: [],
-      sheetNames: [],
-      selectedSheet: '',
+      inputValue: '',
+      sheet1Data: [],
+      sheet2Data: [],
+      sheet2Headers: [],
+      showSheet2: false,
       workbook: null
     };
   },
@@ -45,27 +35,28 @@ export default {
         const response = await fetch('/gymexp.xlsx'); // Path to the file in the public directory
         const arrayBuffer = await response.arrayBuffer();
         this.workbook = XLSX.read(arrayBuffer);
-        this.sheetNames = this.workbook.SheetNames;
 
-        if (this.sheetNames.length > 0) {
-          this.selectedSheet = this.sheetNames[0];
-          this.loadSheetData();
+        // Load data from "Лист1"
+        const sheet1 = this.workbook.Sheets['Лист1'];
+        this.sheet1Data = XLSX.utils.sheet_to_json(sheet1, { header: 1 });
+
+        // Load data from "Лист2"
+        const sheet2 = this.workbook.Sheets['Лист2'];
+        const sheet2Json = XLSX.utils.sheet_to_json(sheet2, { header: 1 });
+        if (sheet2Json.length > 0) {
+          this.sheet2Headers = sheet2Json[0];
+          this.sheet2Data = sheet2Json.slice(1);
         }
       } catch (error) {
         console.error('Error fetching the Excel file:', error);
       }
     },
-    loadSheetData() {
-      const worksheet = this.workbook.Sheets[this.selectedSheet];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    checkUsername() {
+      const usernameIndex = this.sheet1Data[0].indexOf('username');
+      if (usernameIndex === -1) return; // If 'username' column is not found
 
-      if (jsonData.length > 0) {
-        this.headers = jsonData[0];
-        this.data = jsonData.slice(1);
-      } else {
-        this.headers = [];
-        this.data = [];
-      }
+      const usernames = this.sheet1Data.slice(1).map(row => row[usernameIndex]);
+      this.showSheet2 = usernames.includes(this.inputValue);
     }
   }
 };
@@ -81,22 +72,44 @@ export default {
   margin-top: 60px;
 }
 
-table {
-  margin: 20px auto;
-  border-collapse: collapse;
-}
-
-th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
-
-th {
-  background-color: #f2f2f2;
-}
-
-select {
+input {
   margin: 20px;
   padding: 10px;
+  width: 200px;
+}
+
+button {
+  margin: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
 }
 </style>
+
+
+<template>
+  <div>
+    <table>
+      <thead>
+      <tr>
+        <th v-for="(header, index) in headers" :key="index">{{ header }}</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr v-for="(row, rowIndex) in data" :key="rowIndex">
+        <td v-for="(cell, cellIndex) in row" :key="cellIndex">{{ cell }}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'Sheet2Display',
+  props: {
+    headers: Array,
+    data: Array
+  }
+};
+</script>
